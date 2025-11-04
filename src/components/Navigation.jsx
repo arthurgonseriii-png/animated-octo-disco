@@ -19,7 +19,11 @@ const Navigation = ({ setPage, user, handleLogout, currentPage }) => (
         <NavLink icon={GeoMapIcon} label="Geo-Map" onClick={() => setPage('EquipmentMap')} active={currentPage === 'EquipmentMap'} />
         <NavLink icon={Cube} label="3D Scans" onClick={() => setPage('LidarUpload')} active={currentPage === 'LidarUpload'} />
         {(user?.role === 'MasterAdmin' || user?.role === 'Admin') && (
-          <NavLink icon={TeamIcon} label="Team" onClick={() => setPage('UserManagement')} active={currentPage === 'UserManagement'} />
+          <>
+            <NavLink icon={TeamIcon} label="Team" onClick={() => setPage('UserManagement')} active={currentPage === 'UserManagement'} />
+            <NavLink icon={CheckCircle} label="Verify" onClick={() => setPage('Verification')} active={currentPage === 'Verification'} />
+            <NavLink icon={BarChart} label="Reports" onClick={() => setPage('Reports')} active={currentPage === 'Reports'} />
+          </>
         )}
       </nav>
       <div className="flex items-.center space-x-4">
