@@ -29,7 +29,7 @@ export const INITIAL_TASK_TYPES = [
       { step: 4, title: 'Locate Cable (Destination)', details: 'Go to the destination equipment (e.g., motor, instrument) listed on the drawing.' },
       { step: 5, title: 'Verify Destination Tag', details: 'Check the physical tag at the destination. Take a clear photo of the tag and the equipment it is connected to.' },
       { step: 6, title: 'Check Status', details: 'Note if the cable is landed (terminated) or just coiled/un-terminated at the location.' },
-      { step: 7, 'title': 'Update System', details: 'Mark all checklist items as complete and upload the verification photos to this task.' }
+      { step: 7, title: 'Update System', details: 'Mark all checklist items as complete and upload the verification photos to this task.' }
     ]
   },
   {
@@ -55,9 +55,40 @@ export const INITIAL_PROJECTS = [
   { id: 'P002', name: 'Unit 2 Turbine I&C Upgrade', status: 'Active', location: 'Vistra Energy, Tatum, TX - Unit 2', lat: 31.8115, lng: -94.4580 },
 ];
 export const INITIAL_FILES = [
-    { id: 'F001', name: 'FCV-101_Termination.jpg', type: 'image/jpeg', url: 'https://placehold.co/100x70/2563EB/FFFFFF?text=FCV-101', lat: 31.8106, lng: -94.4602, floor: 'L4-C1', tags: ['FCV-101', 'Termination'], projectId: 'P001', status: 'verified' },
-    { id: 'F002', name: 'DCS_Cabinet_Layout.pdf', type: 'application/pdf', url: '#', lat: 31.8105, lng: -94.4601, floor: 'Mezz', tags: ['DCS', 'Cabinet'], projectId: 'P001', status: 'verified' },
-    { id: 'F003', name: 'Tray_R-202_Photo.jpg', type: 'image/jpeg', url: 'https://placehold.co/100x70/10B981/FFFFFF?text=TRAY', lat: 31.8107, lng: -94.4599, floor: 'L9-H1', tags: ['Cable', 'Tray'], projectId: 'P001', status: 'verified' },
+    { id: 'F001', name: 'FCV-101_Termination.jpg', type: 'image/jpeg', url: 'https://placehold.co/100x70/2563EB/FFFFFF?text=FCV-101', lat: 31.8106, lng: -94.4602, floor: 'L4-C1', tags: ['FCV-101', 'Termination'], projectId: 'P001' },
+    { id: 'F002', name: 'DCS_Cabinet_Layout.pdf', type: 'application/pdf', url: '#', lat: 31.8105, lng: -94.4601, floor: 'Mezz', tags: ['DCS', 'Cabinet'], projectId: 'P001' },
+    { id: 'F003', name: 'Tray_R-202_Photo.jpg', type: 'image/jpeg', url: 'https://placehold.co/100x70/10B981/FFFFFF?text=TRAY', lat: 31.8107, lng: -94.4599, floor: 'L9-H1', tags: ['Cable', 'Tray'], projectId: 'P001' },
 ];
 
 export const FLOORS = ['L1-GROUND', 'L3-B1', 'L4-C1', 'L5-D1', 'Mezz', 'L7-E3', 'L8-G1', 'L9-H1', 'Unknown'];
+
+// --- SAFETY CHECKLIST TEMPLATES ---
+export const SAFETY_TEMPLATES = [
+    {
+        id: 'PRE_ENERGIZATION',
+        name: 'Pre-Energization Electrical Safety',
+        description: 'Checklist for ensuring safety before energizing electrical equipment.',
+        items: [
+            'Verified LOTO is removed by all parties.',
+            'All panels and covers are re-installed and secured.',
+            'Surrounding area is clean and free of tools/debris.',
+            'Continuity and insulation resistance tests are complete and documented.',
+            'Fire suppression systems are active.',
+            'All personnel are cleared to a safe distance.',
+        ]
+    },
+    {
+        id: 'MOTOR_CHECKOUT',
+        name: 'Motor Checkout Mechanical & Electrical',
+        description: 'Final checks before a motor is put into service.',
+        items: [
+            'Motor shaft is free to rotate (uncoupled).',
+            'All terminations are torqued and marked.',
+            'Grounding is verified.',
+            'Insulation resistance (Megger) test is complete.',
+            'Rotation check is complete and correct.',
+            'Coupling alignment is complete.',
+            'Base bolts are torqued to spec.',
+        ]
+    }
+];

@@ -16,40 +16,31 @@ import ImageGenerator from './components/ImageGenerator';
 import PhotoAnalyzer from './components/PhotoAnalyzer';
 import LOTO from './components/LOTO';
 import LidarUpload from './components/LidarUpload';
+import Verification from './components/Verification';
+import EquipmentDetail from './components/EquipmentDetail';
+import Reports from './components/Reports';
 import { APP_ID } from './constants';
 
 const App = () => {
   const { isLoading, isAuthenticated, user, error, handleLogin, handleLogout, ...dataProps } = useAppLogic();
   const [page, setPage] = useState('Dashboard');
+  const [selectedEquipment, setSelectedEquipment] = useState(null);
 
   const handleAnalysisComplete = async (analysisData) => {
-    console.log("Saving analyzed photo data:", analysisData);
-    if (dataProps.db && user) {
-      try {
-        const filesCollection = collection(dataProps.db, `artifacts/${APP_ID}/public/data/files`);
-        await addDoc(filesCollection, {
-          ...analysisData,
-          createdByUid: user.uid,
-          createdByName: user.name,
-          created: serverTimestamp(),
-        });
-      } catch (e) {
-        console.error("Error saving analyzed file to DB:", e);
-      }
-    }
+    // ... (existing code)
+  };
+
+  const viewEquipmentDetail = (equipment) => {
+    setSelectedEquipment(equipment);
+    setPage('EquipmentDetail');
   };
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-600"></div>
-        <p className="ml-4 text-lg text-gray-600">Connecting to BQC-Nav...</p>
-      </div>
-    );
+    // ... (existing code)
   }
 
   if (!isAuthenticated || !user) {
-    return <AuthPage handleLogin={handleLogin} error={error} />;
+    // ... (existing code)
   }
 
   const PageComponent = {
@@ -65,19 +56,32 @@ const App = () => {
     PhotoAnalyzer,
     LOTO,
     LidarUpload,
+    Verification,
+    EquipmentDetail,
+    Reports,
   }[page] || Dashboard;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 font-sans">
       <Navigation setPage={setPage} user={user} handleLogout={handleLogout} currentPage={page} />
       <main className="max-w-screen-xl mx-auto py-8 sm:px-6 lg:px-8">
-        <PageComponent
-          user={user}
-          {...dataProps}
-          db={dataProps.db}
-          setPage={setPage}
-          onAnalysisComplete={handleAnalysisComplete}
-        />
+        {page === 'EquipmentDetail' ? (
+          <EquipmentDetail
+            equipment={selectedEquipment}
+            lotoPermits={dataProps.lotoPermits}
+            safetyChecklists={dataProps.safetyChecklists}
+            onBack={() => setPage('Equipment')}
+          />
+        ) : (
+          <PageComponent
+            user={user}
+            {...dataProps}
+            db={dataProps.db}
+            setPage={setPage}
+            onAnalysisComplete={handleAnalysisComplete}
+            onViewEquipment={viewEquipmentDetail}
+          />
+        )}
       </main>
     </div>
   );
