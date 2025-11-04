@@ -1,139 +1,161 @@
-import React, { useState } from 'react';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import React, { useState, useRef, useEffect } from 'react';
 import Card from './Card';
 import Button from './Button';
-import Input from './Input';
 import LoadingSpinner from './LoadingSpinner';
-import { BrainCircuit, Check } from 'lucide-react';
-import { APP_ID } from '../constants';
+import { Check, UploadCloud, AlertTriangle } from 'lucide-react';
+import { AiAnalyzerIcon } from './Icon';
 
-const PhotoAnalyzer = ({ onAnalysisComplete, setPage, db, user }) => {
-    const [files, setFiles] = useState([]);
+const PhotoAnalyzer = ({ onAnalysisComplete }) => {
+    const [file, setFile] = useState(null);
+    const [previewUrl, setPreviewUrl] = useState(null);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
-    const [analysisResults, setAnalysisResults] = useState([]);
+    const [analysisResult, setAnalysisResult] = useState(null);
+    const [error, setError] = useState(null);
+    const imageRef = useRef(null);
+
+    const API_KEY = import.meta.env.VITE_GOOGLE_CLOUD_API_KEY;
+    const API_URL = `https://vision.googleapis.com/v1/images:annotate?key=${API_KEY}`;
+
+    useEffect(() => {
+        return () => {
+            if (previewUrl) {
+                URL.revokeObjectURL(previewUrl);
+            }
+        };
+    }, [previewUrl]);
 
     const handleFileChange = (e) => {
-        if (e.target.files && e.target.files.length > 0) {
-            setFiles(Array.from(e.target.files));
-            setAnalysisResults([]);
-        } else {
-            setFiles([]);
+        const selectedFile = e.target.files[0];
+        if (selectedFile) {
+            setFile(selectedFile);
+            setAnalysisResult(null);
+            setError(null);
+            const url = URL.createObjectURL(selectedFile);
+            setPreviewUrl(url);
         }
     };
 
-    const handleAnalyze = () => {
-        if (files.length === 0) return;
-        setIsAnalyzing(true);
-        console.log(`Simulating AI Analysis of ${files.length} files...`);
-
-        // Simulate AI analysis for each file
-        const newResults = files.map((file, index) => {
-            // Simulate a delay for each analysis
-            return new Promise(resolve => {
-                setTimeout(() => {
-                    const mockAnalysis = {
-                        id: `file_${Date.now()}_${index}`,
-                        file,
-                        lat: 31.81055 + (Math.random() - 0.5) * 0.0002,
-                        lng: -94.46015 + (Math.random() - 0.5) * 0.0002,
-                        tags: ['AI-Detected', 'FCV-' + Math.floor(100 + Math.random() * 10), 'Unit 1'],
-                        name: `AI_Analysis_${file.name.split('.')[0]}.jpg`,
-                        floor: ['Mezz', 'L4-C1', 'L9-H1'][Math.floor(Math.random() * 3)],
-                        previewUrl: URL.createObjectURL(file)
-                    };
-                    resolve(mockAnalysis);
-                }, 1000 * (index + 1)); // Stagger the "analysis"
-            });
-        });
-
-        Promise.all(newResults).then(results => {
-            setAnalysisResults(results);
-            setIsAnalyzing(false);
-            console.log("Simulated Analysis Complete:", results);
+    const getBase64 = (file) => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result.split(',')[1]);
+            reader.onerror = error => reject(error);
         });
     };
 
-    const handleSaveAll = async () => {
-        if (analysisResults.length === 0 || !db || !user) return;
+    const handleAnalyze = async () => {
+        if (!file) return;
+        setIsAnalyzing(true);
+        setError(null);
+        setAnalysisResult(null);
 
-        console.log("Batch saving analyzed files...");
         try {
-            const filesCollection = collection(db, `artifacts/${APP_ID}/public/data/files`);
-            for (const result of analysisResults) {
-                const { file, previewUrl, ...fileData } = result; // Exclude local-only data
-                await addDoc(filesCollection, {
-                    ...fileData,
-                    type: file.type,
-                    // In a real app, 'url' would come from Firebase Storage upload
-                    url: 'https://placehold.co/100x70/000/FFF?text=Uploaded',
-                    createdByUid: user.uid,
-                    createdByName: user.name,
-                    created: serverTimestamp(),
-                });
+            const base64Image = await getBase64(file);
+            const requestBody = {
+                requests: [
+                    {
+                        image: { content: base64Image },
+                        features: [
+                            { type: 'TEXT_DETECTION' },
+                            { type: 'LABEL_DETECTION', maxResults: 10 },
+                            { type: 'OBJECT_LOCALIZATION', maxResults: 5 }
+                        ],
+                    },
+                ],
+            };
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(requestBody),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error.message || 'API request failed');
             }
 
-            setFiles([]);
-            setAnalysisResults([]);
-            alert(`${analysisResults.length} files analyzed and saved with geo-tags!`);
-            setPage('EquipmentMap');
-        } catch(e) {
-            console.error("Error saving analyzed files:", e);
-            alert("Failed to save file data. Check console.");
+            const data = await response.json();
+            const result = data.responses[0];
+            setAnalysisResult(result);
+
+        } catch (err) {
+            setError(`Analysis Failed: ${err.message}. Ensure the Google Cloud Vision API key is correct and the API is enabled.`);
+            console.error(err);
+        } finally {
+            setIsAnalyzing(false);
         }
     };
 
+    const renderOverlays = () => {
+        if (!analysisResult || !imageRef.current) return null;
+        const { naturalWidth, naturalHeight, clientWidth, clientHeight } = imageRef.current;
+        const widthScale = clientWidth / naturalWidth;
+        const heightScale = clientHeight / naturalHeight;
+
+        const objectBoxes = analysisResult.localizedObjectAnnotations?.map((obj, i) => {
+            const vertices = obj.boundingPoly.normalizedVertices;
+            const x1 = vertices[0].x * clientWidth;
+            const y1 = vertices[0].y * clientHeight;
+            const width = (vertices[1].x - vertices[0].x) * clientWidth;
+            const height = (vertices[2].y - vertices[0].y) * clientHeight;
+
+            return (
+                <div key={`obj-${i}`} style={{ position: 'absolute', border: '2px solid #f59e0b', left: x1, top: y1, width, height }}>
+                    <span className="bg-amber-500 text-white text-xs font-bold p-1 absolute -top-5 left-0">{obj.name} ({Math.round(obj.score * 100)}%)</span>
+                </div>
+            )
+        }) || [];
+
+        const textBlocks = analysisResult.textAnnotations?.slice(1).map((text, i) => { // slice(1) to skip the full text block
+            const vertices = text.boundingPoly.vertices;
+            const x = vertices[0].x * widthScale;
+            const y = vertices[0].y * heightScale;
+            const width = (vertices[1].x - vertices[0].x) * widthScale;
+            const height = (vertices[2].y - vertices[0].y) * heightScale;
+
+             return (
+                <div key={`text-${i}`} style={{ position: 'absolute', border: '1px dotted #10b981', left: x, top: y, width, height, cursor: 'pointer' }} title={text.description}></div>
+            )
+        }) || [];
+
+        return [...objectBoxes, ...textBlocks];
+    }
+
     return (
-        <Card title="AI Photo Upload & Analysis" titleIcon={BrainCircuit}>
-            <div className="space-y-6">
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Select Photo Folder/Batch</label>
-                    <input
-                        type="file"
-                        accept="image/*"
-                        multiple // Allow multiple file selection
-                        onChange={handleFileChange}
-                        className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                    />
+        <Card title="AI Photo Analyzer" titleIcon={AiAnalyzerIcon}>
+            <div className="space-y-4">
+                <div className="p-4 border-2 border-dashed border-gray-300 rounded-lg text-center">
+                    <input type="file" accept="image/*" onChange={handleFileChange} className="hidden" id="photo-upload" />
+                    <label htmlFor="photo-upload" className="cursor-pointer">
+                        <UploadCloud className="mx-auto text-gray-400" size={40} />
+                        <p className="mt-2 text-sm text-gray-600">{file ? `Selected: ${file.name}` : 'Click to upload a photo'}</p>
+                    </label>
                 </div>
 
-                {files.length > 0 && !isAnalyzing && analysisResults.length === 0 && (
+                {previewUrl && (
+                    <div className="relative w-full max-w-2xl mx-auto">
+                        <img ref={imageRef} src={previewUrl} alt="Preview" className="w-full h-auto rounded-lg shadow-md" />
+                        {renderOverlays()}
+                    </div>
+                )}
+
+                {error && <div className="p-3 bg-red-100 text-red-700 rounded-lg flex items-center space-x-2"><AlertTriangle size={18} /><span>{error}</span></div>}
+
+                {isAnalyzing && <LoadingSpinner text="Analyzing image with Google Cloud Vision..." />}
+
+                {file && !isAnalyzing && (
                     <Button onClick={handleAnalyze} className="w-full">
-                       <><BrainCircuit size={18} className="mr-2"/> Analyze {files.length} Photo(s) with AI</>
+                        <AiAnalyzerIcon size={18} className="mr-2"/> Analyze Photo with AI
                     </Button>
                 )}
 
-                {isAnalyzing && <LoadingSpinner text={`Analyzing ${files.length} images...`} />}
-
-                {analysisResults.length > 0 && (
-                    <div className="mt-6 space-y-4">
-                        <h3 className="font-bold text-lg text-gray-800 border-b pb-2">Analysis Complete</h3>
-                        <div className="space-y-3 max-h-96 overflow-y-auto pr-2">
-                            {analysisResults.map((result, index) => (
-                                <div key={result.id} className="p-4 border rounded-lg bg-gray-50 flex items-start space-x-4">
-                                    <img src={result.previewUrl} alt="Preview" className="w-20 h-20 object-cover rounded-lg shadow-md" />
-                                    <div className="flex-1 space-y-2">
-                                        <Input
-                                            label={`File ${index + 1} Name`}
-                                            value={result.name}
-                                            onChange={(e) => {
-                                                const newResults = [...analysisResults];
-                                                newResults[index].name = e.target.value;
-                                                setAnalysisResults(newResults);
-                                            }}
-                                        />
-                                        <p className="text-xs text-gray-600">
-                                            <strong>Geo-Tag:</strong> {result.lat.toFixed(4)}, {result.lng.toFixed(4)} |
-                                            <strong> Floor:</strong> {result.floor} |
-                                            <strong> Tags:</strong> {result.tags.join(', ')}
-                                        </p>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                        <div className="flex justify-end space-x-3 pt-4">
-                            <Button onClick={() => { setFiles([]); setAnalysisResults([]); }} className="w-auto bg-gray-500">Cancel</Button>
-                            <Button onClick={handleSaveAll} className="w-auto bg-green-600"><Check size={18} className="mr-1"/> Confirm & Save All</Button>
-                        </div>
+                {analysisResult && (
+                    <div className="space-y-4 pt-4 border-t">
+                        <h3 className="text-xl font-bold">AI Analysis Results</h3>
+                        <div><strong>Detected Text:</strong><p className="text-sm text-gray-700 bg-gray-100 p-2 rounded">{analysisResult.textAnnotations?.[0]?.description || 'None'}</p></div>
+                        <div><strong>Detected Labels:</strong><p className="flex flex-wrap gap-2">{analysisResult.labelAnnotations?.map(label => <span key={label.mid} className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-sm">{label.description}</span>) || 'None'}</p></div>
+                        <Button onClick={() => onAnalysisComplete(analysisResult)} className="w-full bg-green-600"><Check size={18} className="mr-2"/> Use This AI Data</Button>
                     </div>
                 )}
             </div>

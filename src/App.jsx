@@ -14,6 +14,8 @@ import UserManagement from './components/UserManagement';
 import Profile from './components/Profile';
 import ImageGenerator from './components/ImageGenerator';
 import PhotoAnalyzer from './components/PhotoAnalyzer';
+import LOTO from './components/LOTO';
+import LidarUpload from './components/LidarUpload';
 import { APP_ID } from './constants';
 
 const App = () => {
@@ -61,6 +63,8 @@ const App = () => {
     Profile,
     ImageGenerator,
     PhotoAnalyzer,
+    LOTO,
+    LidarUpload,
   }[page] || Dashboard;
 
   return (

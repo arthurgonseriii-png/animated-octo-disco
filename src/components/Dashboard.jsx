@@ -1,6 +1,9 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import Card from './Card';
-import { HardHat, AlertTriangle, MapPin, Clock, Zap, Calendar, CheckSquare, Wrench, BrainCircuit } from 'lucide-react';
+import Input from './Input';
+import { Search, FileText, X } from 'lucide-react';
+import { DashboardIcon, DailyLogIcon, EquipmentIcon, SafetyIcon, GeoMapIcon, AiAnalyzerIcon } from './Icon';
+
 
 const StatCard = ({ icon: Icon, title, value, color }) => (
     <div className={`bg-white p-5 rounded-xl shadow-lg border-l-4 border-${color}-500 flex items-center space-x-4 hover:shadow-xl hover:scale-105 transform transition-all duration-300`}>
@@ -19,7 +22,72 @@ const ActionButton = ({ icon: Icon, label, onClick }) => (
     </button>
 );
 
-const Dashboard = ({ user, assignments = [], projects = [], files = [], dailyLogs = [], setPage }) => {
+const UniversalSearch = ({ equipment, files, setPage }) => {
+    const [searchTerm, setSearchTerm] = useState('');
+    const [isFocused, setIsFocused] = useState(false);
+
+    const searchResults = useMemo(() => {
+        if (!searchTerm) return [];
+        const lowerTerm = searchTerm.toLowerCase();
+
+        const eqResults = equipment
+            .filter(e => e.tagNumber.toLowerCase().includes(lowerTerm) || e.name.toLowerCase().includes(lowerTerm))
+            .map(e => ({ ...e, type: 'Equipment' }));
+
+        const fileResults = files
+            .filter(f => f.name.toLowerCase().includes(lowerTerm) || f.tags?.join(' ').toLowerCase().includes(lowerTerm))
+            .map(f => ({ ...f, type: 'File' }));
+
+        return [...eqResults, ...fileResults].slice(0, 10);
+    }, [searchTerm, equipment, files]);
+
+    const handleResultClick = (result) => {
+        if (result.type === 'Equipment') {
+            setPage('EquipmentMap'); // Or a dedicated equipment page in future
+        }
+        // Could add navigation for files too
+        setSearchTerm('');
+    };
+
+    return (
+        <div className="relative">
+            <div className="flex items-center">
+                <Input
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    onFocus={() => setIsFocused(true)}
+                    onBlur={() => setTimeout(() => setIsFocused(false), 150)} // Delay to allow click
+                    placeholder="Search for any Equipment Tag or File Name..."
+                    className="pl-10 text-lg"
+                />
+                <Search size={20} className="absolute left-3 text-gray-400" />
+                {searchTerm && <X size={20} className="absolute right-3 text-gray-400 cursor-pointer" onClick={() => setSearchTerm('')} />}
+            </div>
+            {isFocused && searchResults.length > 0 && (
+                <div className="absolute z-10 w-full mt-1 bg-white border rounded-lg shadow-xl max-h-80 overflow-y-auto">
+                    <ul>
+                        {searchResults.map(item => (
+                            <li
+                                key={item.id}
+                                onClick={() => handleResultClick(item)}
+                                className="p-3 flex items-center space-x-3 hover:bg-blue-50 cursor-pointer border-b"
+                            >
+                                {item.type === 'Equipment' ? <EquipmentIcon className="text-amber-500" /> : <FileText className="text-emerald-500" />}
+                                <div>
+                                    <div className="font-semibold">{item.tagNumber || item.name}</div>
+                                    <div className="text-sm text-gray-500">{item.type}: {item.name}</div>
+                                </div>
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            )}
+        </div>
+    );
+};
+
+
+const Dashboard = ({ user, assignments = [], projects = [], files = [], dailyLogs = [], equipment = [], setPage }) => {
     const pendingAssignments = assignments.filter(a => a.assignedToUid === user.uid && a.status !== 'Complete');
     const recentLogs = dailyLogs.filter(log => log.createdByUid === user.uid).slice(0, 3);
 
@@ -29,15 +97,21 @@ const Dashboard = ({ user, assignments = [], projects = [], files = [], dailyLog
                 <h1 className="text-4xl font-bold">Welcome back, {user.name.split(' ')[0]}!</h1>
                 <p className="opacity-80 mt-2 text-blue-100">Here is your operational summary for {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}.</p>
             </div>
+
+            {/* Universal Search Added Here */}
+            <Card>
+                <UniversalSearch equipment={equipment} files={files} setPage={setPage} />
+            </Card>
+
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <StatCard icon={HardHat} title="Active Projects" value={projects.length} color="blue" />
-                <StatCard icon={AlertTriangle} title="Pending Tasks" value={pendingAssignments.length} color="red" />
-                <StatCard icon={MapPin} title="Geo-Tagged Files" value={files.filter(f => f.lat).length} color="green" />
-                <StatCard icon={Clock} title="Your Recent Logs" value={recentLogs.length} color="purple" />
+                <StatCard icon={DashboardIcon} title="Active Projects" value={projects.length} color="blue" />
+                <StatCard icon={SafetyIcon} title="Pending Tasks" value={pendingAssignments.length} color="red" />
+                <StatCard icon={EquipmentIcon} title="Tracked Equipment" value={equipment.length} color="amber" />
+                <StatCard icon={FileText} title="Project Files" value={files.length} color="emerald" />
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-                <div className="lg:col-span-3">
-                    <Card title="High-Priority Tasks" titleIcon={AlertTriangle}>
+                <div className="lg-col-span-3">
+                    <Card title="High-Priority Tasks" titleIcon={SafetyIcon}>
                         <ul className="space-y-3">
                             {pendingAssignments.length > 0 ? (
                                 pendingAssignments.slice(0, 5).map(a => {
@@ -57,12 +131,12 @@ const Dashboard = ({ user, assignments = [], projects = [], files = [], dailyLog
                     </Card>
                 </div>
                 <div className="lg:col-span-2">
-                    <Card title="Quick Actions" titleIcon={Zap}>
+                    <Card title="Quick Actions" titleIcon={GeoMapIcon}>
                         <div className="grid grid-cols-2 gap-4">
-                            <ActionButton icon={Calendar} label="New Daily Log" onClick={() => setPage('DailyLog')} />
-                            <ActionButton icon={CheckSquare} label="New Safety Check" onClick={() => setPage('Safety')} />
-                            <ActionButton icon={Wrench} label="Add Equipment" onClick={() => setPage('Equipment')} />
-                            <ActionButton icon={BrainCircuit} label="AI Tools" onClick={() => setPage('PhotoAnalyzer')} />
+                            <ActionButton icon={DailyLogIcon} label="New Daily Log" onClick={() => setPage('DailyLog')} />
+                            <ActionButton icon={SafetyIcon} label="New Safety Check" onClick={() => setPage('Safety')} />
+                            <ActionButton icon={EquipmentIcon} label="Add Equipment" onClick={() => setPage('Equipment')} />
+                            <ActionButton icon={AiAnalyzerIcon} label="AI Tools" onClick={() => setPage('PhotoAnalyzer')} />
                         </div>
                     </Card>
                 </div>
