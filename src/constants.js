@@ -59,3 +59,5 @@ export const INITIAL_FILES = [
     { id: 'F002', name: 'DCS_Cabinet_Layout.pdf', type: 'application/pdf', url: '#', lat: 31.8105, lng: -94.4601, floor: 'Mezz', tags: ['DCS', 'Cabinet'], projectId: 'P001' },
     { id: 'F003', name: 'Tray_R-202_Photo.jpg', type: 'image/jpeg', url: 'https://placehold.co/100x70/10B981/FFFFFF?text=TRAY', lat: 31.8107, lng: -94.4599, floor: 'L9-H1', tags: ['Cable', 'Tray'], projectId: 'P001' },
 ];
+
+export const FLOORS = ['L1-GROUND', 'L3-B1', 'L4-C1', 'L5-D1', 'Mezz', 'L7-E3', 'L8-G1', 'L9-H1', 'Unknown'];

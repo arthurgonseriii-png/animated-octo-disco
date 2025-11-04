@@ -31,6 +31,7 @@ const useAppLogic = () => {
   const [dailyLogs, setDailyLogs] = useState([]);
   const [equipment, setEquipment] = useState([]);
   const [safetyChecklists, setSafetyChecklists] = useState([]);
+  const [lotoPermits, setLotoPermits] = useState([]);
 
   // Memoized helper functions for Firestore paths
   const getPublicPath = useCallback((collectionName) => {
@@ -135,13 +136,13 @@ const useAppLogic = () => {
   useEffect(() => {
     // Only listen if we have a DB and a *real, authenticated* user profile
     if (!db || !user || !isAuthenticated) {
-      const clearData = () => { setAllUsers([]); setProjects([]); setTaskTemplates([]); setFiles([]); setDailyLogs([]); setEquipment([]); setSafetyChecklists([]); setAssignments([]); };
+      const clearData = () => { setAllUsers([]); setProjects([]); setTaskTemplates([]); setFiles([]); setDailyLogs([]); setEquipment([]); setSafetyChecklists([]); setAssignments([]); setLotoPermits([]); };
       clearData();
       return;
     };
 
     // User is authenticated with a real role (Admin, MasterAdmin, User), attach all listeners.
-    const collectionsToListen = { setAllUsers, setProjects, setTaskTemplates, setFiles, setDailyLogs, setEquipment, setSafetyChecklists, setAssignments };
+    const collectionsToListen = { setAllUsers, setProjects, setTaskTemplates, setFiles, setDailyLogs, setEquipment, setSafetyChecklists, setAssignments, setLotoPermits };
     const listeners = Object.entries(collectionsToListen).map(([setterName, _]) => {
         const key = setterName.substring(3).charAt(0).toLowerCase() + setterName.substring(4);
         const collectionRef = getPublicPath(key);
@@ -225,7 +226,7 @@ const useAppLogic = () => {
     setIsAuthenticated(false);
   }, []);
 
-  return { isLoading, isAuthenticated, user, error, allUsers, projects, taskTemplates, assignments, files, dailyLogs, equipment, safetyChecklists, handleLogin, handleLogout, db, auth };
+  return { isLoading, isAuthenticated, user, error, allUsers, projects, taskTemplates, assignments, files, dailyLogs, equipment, safetyChecklists, lotoPermits, handleLogin, handleLogout, db, auth };
 };
 
 export default useAppLogic;
