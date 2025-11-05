@@ -45,11 +45,11 @@ const App = () => {
   };
 
   if (isLoading) {
-    // ... (existing code)
+    return <div className="min-h-screen flex items-center justify-center"><div>Loading...</div></div>;
   }
 
   if (!isAuthenticated || !user) {
-    // ... (existing code)
+    return <AuthPage handleLogin={handleLogin} error={error} />;
   }
 
   const PageComponent = {
