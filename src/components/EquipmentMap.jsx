@@ -5,7 +5,8 @@ import { GeoMapIcon, EquipmentIcon } from './Icon';
 import Button from './Button'; // Import Button
 
 const EquipmentMap = ({ projects = [], files = [], equipment = [], onViewEquipment }) => {
-    // ... (existing state and functions)
+    const [selectedItem, setSelectedItem] = useState(null);
+    const [currentFloor, setCurrentFloor] = useState('L1-GROUND');
 
     const handleItemClick = (item) => {
         setSelectedItem(item);

@@ -4,7 +4,7 @@ import { EquipmentIcon } from './Icon';
 import { ArrowLeft, ShieldCheck, ListChecks } from 'lucide-react';
 import Button from './Button';
 
-const EquipmentDetail = ({ equipment, lotoPermits, safetyChecklists, onBack }) => {
+const EquipmentDetail = ({ equipment, lotoPermits = [], safetyChecklists = [], onBack }) => {
     if (!equipment) {
         // ... (existing not found code)
     }

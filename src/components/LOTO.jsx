@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-// ... (other imports)
+import Card from './Card';
+import Modal from './Modal';
 import { SafetyIcon } from './Icon';
 
 const LOTOForm = ({ permit, onSave, onCancel, equipment }) => {
