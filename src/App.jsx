@@ -19,6 +19,7 @@ import LidarUpload from './components/LidarUpload';
 import Verification from './components/Verification';
 import EquipmentDetail from './components/EquipmentDetail';
 import Reports from './components/Reports';
+import WorkPackageParser from './components/WorkPackageParser'; // Import the new component
 import { APP_ID } from './constants';
 
 const App = () => {
@@ -33,6 +34,14 @@ const App = () => {
   const viewEquipmentDetail = (equipment) => {
     setSelectedEquipment(equipment);
     setPage('EquipmentDetail');
+  };
+
+  const handleTasksGenerated = (tasks) => {
+    // This is where you would typically save the new tasks to Firestore.
+    // For now, we'll just navigate to the Task Management page to see them.
+    console.log("Generated tasks:", tasks);
+    // You would add logic here to merge these tasks into your main task state
+    setPage('TaskManagement');
   };
 
   if (isLoading) {
@@ -59,6 +68,7 @@ const App = () => {
     Verification,
     EquipmentDetail,
     Reports,
+    WorkPackageParser,
   }[page] || Dashboard;
 
   return (
@@ -80,6 +90,7 @@ const App = () => {
             setPage={setPage}
             onAnalysisComplete={handleAnalysisComplete}
             onViewEquipment={viewEquipmentDetail}
+            onTasksGenerated={handleTasksGenerated}
           />
         )}
       </main>

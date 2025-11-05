@@ -1,5 +1,6 @@
 import React from 'react';
 import Card from './Card';
+import UniversalSearch from './UniversalSearch'; // Import the search component
 import { HardHat, AlertTriangle, MapPin, Clock, Zap, Calendar, CheckSquare, Wrench, BrainCircuit } from 'lucide-react';
 
 const StatCard = ({ icon: Icon, title, value, color }) => (
@@ -19,7 +20,10 @@ const ActionButton = ({ icon: Icon, label, onClick }) => (
     </button>
 );
 
-const Dashboard = ({ user, assignments = [], projects = [], files = [], dailyLogs = [], setPage }) => {
+const Dashboard = ({ user, assignments = [], projects = [], files = [], dailyLogs = [], equipment = [], setPage, onViewEquipment }) => {
+    if (!user) {
+        return <div>Loading...</div>; // Or some other placeholder
+    }
     const pendingAssignments = assignments.filter(a => a.assignedToUid === user.uid && a.status !== 'Complete');
     const recentLogs = dailyLogs.filter(log => log.createdByUid === user.uid).slice(0, 3);
 
@@ -29,6 +33,11 @@ const Dashboard = ({ user, assignments = [], projects = [], files = [], dailyLog
                 <h1 className="text-4xl font-bold">Welcome back, {user.name.split(' ')[0]}!</h1>
                 <p className="opacity-80 mt-2 text-blue-100">Here is your operational summary for {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}.</p>
             </div>
+
+            <Card>
+                <UniversalSearch equipment={equipment} files={files} setPage={setPage} onViewEquipment={onViewEquipment} />
+            </Card>
+
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <StatCard icon={HardHat} title="Active Projects" value={projects.length} color="blue" />
                 <StatCard icon={AlertTriangle} title="Pending Tasks" value={pendingAssignments.length} color="red" />
