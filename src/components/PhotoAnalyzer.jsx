@@ -1,6 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
-// ... (other imports)
+import Card from './Card';
+import Button from './Button';
+import { Check } from 'lucide-react';
+import { AiAnalyzerIcon } from './Icon';
+import { APP_ID } from '../constants';
 
 const PhotoAnalyzer = ({ onAnalysisComplete, db, user }) => {
     // ... (existing state and functions)

@@ -17,6 +17,11 @@ const Equipment = ({ user, equipment, db, onViewEquipment }) => {
   const [editingItem, setEditingItem] = useState(null);
   const [deletingItem, setDeletingItem] = useState(null);
 
+  const openForm = (item = null) => {
+    setEditingItem(item);
+    setIsFormOpen(true);
+  };
+
   // ... (existing handleSave, handleDelete, openForm code)
 
   return (

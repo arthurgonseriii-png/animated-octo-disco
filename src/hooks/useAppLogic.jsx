@@ -10,7 +10,10 @@ import {
     APP_ID,
     INITIAL_TASK_TYPES,
     INITIAL_PROJECTS,
-    INITIAL_FILES
+    INITIAL_FILES,
+    INITIAL_USERS,
+    INITIAL_EQUIPMENT,
+    INITIAL_LOTO,
 } from '../constants';
 
 /** Main application logic hook */
@@ -87,6 +90,9 @@ const useAppLogic = () => {
         { data: INITIAL_PROJECTS, name: 'projects' },
         { data: INITIAL_TASK_TYPES, name: 'taskTemplates' },
         { data: INITIAL_FILES, name: 'files' },
+        { data: INITIAL_USERS, name: 'users' },
+        { data: INITIAL_EQUIPMENT, name: 'equipment' },
+        { data: INITIAL_LOTO, name: 'lotoPermits' },
       ];
       for (const { data, name } of collectionsToPopulate) {
         const collectionRef = collection(firestoreDb, `artifacts/${APP_ID}/public/data/${name}`);

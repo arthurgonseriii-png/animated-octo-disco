@@ -8,6 +8,7 @@ const LOTOForm = ({ permit, onSave, onCancel, equipment }) => {
 };
 
 const LOTO = ({ user, equipment = [], lotoPermits = [], db }) => {
+    const [viewingItem, setViewingItem] = useState(null);
     // ... (existing state and handlers)
 
     return (
