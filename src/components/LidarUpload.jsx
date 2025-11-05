@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import Card from './Card';
 import Button from './Button';
-import { UploadCloud, Cube } from 'lucide-react';
+import { UploadCloud, Box } from 'lucide-react';
 
 const LidarUpload = () => {
     const [file, setFile] = useState(null);
@@ -25,7 +25,7 @@ const LidarUpload = () => {
     };
 
     return (
-        <Card title="Lidar 3D Scan Upload & Processing" titleIcon={Cube}>
+        <Card title="Lidar 3D Scan Upload & Processing" titleIcon={Box}>
             <div className="space-y-6">
                 <p className="text-gray-600">
                     This module is for uploading 3D scan data from Lidar-equipped devices. Once uploaded, the data will be processed to create a high-fidelity, interactive 3D model of the plant.
@@ -59,7 +59,7 @@ const LidarUpload = () => {
 
                 <div className="flex items-center justify-center text-center text-gray-400 bg-gray-100 p-8 rounded-lg h-64">
                     <div>
-                        <Cube size={40} className="mx-auto" />
+                        <Box size={40} className="mx-auto" />
                         <p className="mt-2 font-semibold">3D Model Viewer Placeholder</p>
                         <p className="text-sm">Interactive model will be displayed here.</p>
                     </div>
