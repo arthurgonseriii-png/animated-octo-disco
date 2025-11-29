@@ -20,6 +20,7 @@ import Verification from './components/Verification';
 import EquipmentDetail from './components/EquipmentDetail';
 import Reports from './components/Reports';
 import WorkPackageParser from './components/WorkPackageParser'; // Import the new component
+import JSAGenerator from './components/JSAGenerator'; // Import the new component
 import { APP_ID } from './constants';
 
 const App = () => {
@@ -75,6 +76,7 @@ const App = () => {
     EquipmentDetail,
     Reports,
     WorkPackageParser,
+    JSAGenerator,
   }[page] || Dashboard;
 
   return (
