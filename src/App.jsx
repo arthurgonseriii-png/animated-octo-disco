@@ -36,11 +36,17 @@ const App = () => {
     setPage('EquipmentDetail');
   };
 
-  const handleTasksGenerated = (tasks) => {
-    // This is where you would typically save the new tasks to Firestore.
-    // For now, we'll just navigate to the Task Management page to see them.
-    console.log("Generated tasks:", tasks);
-    // You would add logic here to merge these tasks into your main task state
+  const handleTasksGenerated = async (tasks) => {
+    if (!dataProps.db) return;
+    const assignmentsCollection = collection(dataProps.db, `artifacts/${APP_ID}/public/data/assignments`);
+    for (const task of tasks) {
+      await addDoc(assignmentsCollection, {
+        ...task,
+        created: serverTimestamp(),
+        createdBy: user.name,
+        assignedToUid: user.uid, // Assign to current user by default
+      });
+    }
     setPage('TaskManagement');
   };
 

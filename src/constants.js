@@ -15,6 +15,21 @@ export const MASTER_ADMIN_UID = 'MASTER_ADMIN_UID_001';
 export const APP_ID = FIREBASE_CONFIG.projectId;
 
 // --- INITIAL DATA STRUCTURES ---
+export const INITIAL_USERS = [
+    { id: 'USER_002', name: 'John Doe', role: 'Technician', team: 'Unit 1 Electrical' },
+    { id: 'USER_003', name: 'Jane Smith', role: 'Manager', team: 'I&C' },
+];
+
+export const INITIAL_EQUIPMENT = [
+    { id: 'EQ_001', tagNumber: 'BFP-001A', name: 'Boiler Feed Pump A', status: 'Online', floor: 'L1-GROUND' },
+    { id: 'EQ_002', tagNumber: 'CP-002B', name: 'Condensate Pump B', status: 'Offline', floor: 'L3-B1' },
+    { id: 'EQ_003', tagNumber: 'FCV-101', name: 'Feedwater Control Valve', status: 'Online', floor: 'L4-C1' },
+];
+
+export const INITIAL_LOTO = [
+    { id: 'LOTO_001', equipmentTag: 'CP-002B', description: 'Isolate for motor replacement', status: 'Active', createdBy: 'Jane Smith' },
+];
+
 export const INITIAL_TASK_TYPES = [
   {
     id: 'T001',
@@ -92,3 +107,15 @@ export const SAFETY_TEMPLATES = [
         ]
     }
 ];
+
+export const MAP_DATA = {
+    'L1-GROUND': [
+        { id: 'EQ_001', x: 100, y: 200 },
+    ],
+    'L3-B1': [
+        { id: 'EQ_002', x: 300, y: 150 },
+    ],
+    'L4-C1': [
+        { id: 'EQ_003', x: 250, y: 300 },
+    ],
+};
