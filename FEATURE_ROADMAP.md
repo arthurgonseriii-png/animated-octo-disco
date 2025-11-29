@@ -28,28 +28,38 @@ This document outlines the planned features for the BQC-Nav application, based o
     *   The application will then automatically generate a JSA, filling in the location, equipment, and known hazards based on the selected tasks and any available data.
     *   The user will then only need to review and sign the JSA, saving significant time.
 
-## Phase 2: Advanced Reporting and Integration
+## Phase 2: Advanced Data Integration and AI Analysis
 
-### 4. Automated End-of-Shift Reporting
-*   **Purpose:** To automatically generate a comprehensive end-of-shift report, summarizing the technician's work and eliminating manual report writing.
+### 4. Seamless Data Integration & "Living Blueprint"
+*   **Purpose:** To create a single, unified view of the plant that becomes more accurate over time by seamlessly integrating data from multiple sources.
 *   **Implementation:**
-    *   The application will compile all of the day's activities, including completed tasks, photos taken, notes entered (both free-hand and typed), and any materials used.
-    *   This data will be formatted into a professional, exportable report that can be easily shared with supervisors.
+    *   **Multi-Source Upload:** Allow users to upload photos, Lidar files, text notes, and Excel spreadsheets.
+    *   **AI-Powered Data Fusion:** The application will use AI to analyze and correlate data from all sources, creating a "living blueprint" of the plant. For example, a photo of a cable tag can be linked to a Lidar scan of the cable's route, and both can be cross-referenced with an Excel sheet that lists the cable's destination.
+    *   **Excel Import/Export:**
+        *   **Import:** Allow users to upload Excel files containing lists of equipment, cables, and other assets. The application will parse these files and automatically create or update the corresponding items in the database.
+        *   **Export:** Allow users to export a comprehensive Excel spreadsheet of all mapped assets, including their status, last worked on by, and other pertinent information.
 
-### 5. Enhanced Plant Mapping/Location Tool
-*   **Purpose:** To create a "living blueprint" of the plant that becomes more accurate over time, making it easier to locate equipment and cables.
+### 5. AI Drawing Analysis
+*   **Purpose:** To create a fully searchable, intelligent map of the plant by analyzing electrical drawings.
 *   **Implementation:**
-    *   Every time a technician takes a photo or Lidar scan, the application will use the geospatial data to refine the location of the equipment in the database.
-    *   Over time, this will create a highly accurate, crowd-sourced map of the plant's assets.
+    *   **Drawing Upload and OCR:** Allow users to upload thousands of electrical drawings. The application will use Optical Character Recognition (OCR) to extract all text and symbols from the drawings.
+    *   **Intelligent Search:** Make the content of all drawings fully searchable. For example, a user could search for "Cable 717771" and the application would instantly pull up every drawing that mentions that cable.
+    *   **AI-Powered Anomaly Detection:** The AI will analyze the drawings to identify potential issues, such as incorrect wiring or design flaws, and notify the user.
 
 ## Phase 3: Administrative and User Management
 
-### 6. Custom Task Template Generation
-*   **Purpose:** To allow administrators to create new, custom task templates without needing to modify the application's code.
+### 6. Team Management
+*   **Purpose:** To provide a full-featured team management module for administrators.
 *   **Implementation:**
-    *   An admin console will be created where an administrator can define a new task type, including its name, description, required checklist items, and any required files or photos.
+    *   **User Creation and Role Assignment:** Allow administrators to create new user accounts and assign roles (e.g., Technician, Manager).
+    *   **Team Creation and Management:** Allow administrators to create teams and assign users to them.
+    *   **Drag-and-Drop Interface:** Provide a simple, drag-and-drop interface for moving users between teams.
 
-### 7. Change Request Inbox
-*   **Purpose:** To provide a formal system for users to request changes to their profiles (e.g., new phone number, updated address) and for administrators to approve or deny these requests.
+### 7. Gamified AI Verification System
+*   **Purpose:** To incentivize users to verify AI-generated data, thereby improving the accuracy of the "living blueprint."
 *   **Implementation:**
-    *   A new "Change Requests" section will be added to the admin console where administrators can view and manage all pending change requests.
+    *   **Verification Hub:** Create a dedicated page where users can review and verify AI-generated data (e.g., confirming that a photo of a cable tag is correct).
+    *   **Gamification:** Reward users with points for each verification. These points can be displayed on their profile and used to create a leaderboard.
+    *   **Two-Tiered Verification:**
+        *   Unverified data will be flagged with a red header.
+        *   Data becomes "confirmed" after it has been verified by two different users or by a single Master Admin.
