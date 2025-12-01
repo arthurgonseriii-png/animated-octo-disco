@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { collection, addDoc, updateDoc, deleteDoc, doc, serverTimestamp } from 'firebase/firestore';
+import React, { useState, useEffect } from 'react';
+import { collection, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, getDocs } from 'firebase/firestore';
 import Card from './Card';
 import Button from './Button';
 import Modal from './Modal';
@@ -38,6 +38,16 @@ const UserManagement = ({ allUsers = [], db }) => {
     const [deletingUser, setDeletingUser] = useState(null);
     const [teams, setTeams] = useState([]);
 
+    useEffect(() => {
+        const fetchTeams = async () => {
+            if (!db) return;
+            const teamsCollection = collection(db, 'teams');
+            const teamSnapshot = await getDocs(teamsCollection);
+            setTeams(teamSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+        };
+        fetchTeams();
+    }, [db]);
+
     const handleSaveUser = async (user) => {
         if (!db) return;
         if (user.id) {
@@ -55,9 +65,16 @@ const UserManagement = ({ allUsers = [], db }) => {
         setDeletingUser(null);
     };
 
-    const handleUpdateTeams = (updatedTeams) => {
+    const handleUpdateTeams = async (updatedTeams) => {
         setTeams(updatedTeams);
-        // Here you would typically save the updated team structure to Firestore
+        if (!db) return;
+        for (const team of updatedTeams) {
+            if (team.id.startsWith('T-')) {
+                await addDoc(collection(db, 'teams'), team);
+            } else {
+                await updateDoc(doc(db, 'teams', team.id), team);
+            }
+        }
     };
 
     return (

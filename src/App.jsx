@@ -21,6 +21,7 @@ import EquipmentDetail from './components/EquipmentDetail';
 import Reports from './components/Reports';
 import WorkPackageParser from './components/WorkPackageParser'; // Import the new component
 import JSAGenerator from './components/JSAGenerator'; // Import the new component
+import DataImport from './components/DataImport'; // Import the new component
 import { APP_ID } from './constants';
 
 const App = () => {
@@ -51,6 +52,19 @@ const App = () => {
     setPage('TaskManagement');
   };
 
+  const handleDataImport = async (data) => {
+    if (!dataProps.db) return;
+    const equipmentCollection = collection(dataProps.db, `artifacts/${APP_ID}/public/data/equipment`);
+    const header = data[0];
+    const rows = data.slice(1);
+
+    for (const row of rows) {
+        const equip = header.reduce((obj, key, i) => ({ ...obj, [key]: row[i] }), {});
+        await addDoc(equipmentCollection, equip);
+    }
+    setPage('Equipment');
+  };
+
   if (isLoading) {
     return <div className="min-h-screen flex items-center justify-center"><div>Loading...</div></div>;
   }
@@ -77,6 +91,7 @@ const App = () => {
     Reports,
     WorkPackageParser,
     JSAGenerator,
+    DataImport,
   }[page] || Dashboard;
 
   return (
@@ -99,6 +114,7 @@ const App = () => {
             onAnalysisComplete={handleAnalysisComplete}
             onViewEquipment={viewEquipmentDetail}
             onTasksGenerated={handleTasksGenerated}
+            onImport={handleDataImport}
           />
         )}
       </main>
