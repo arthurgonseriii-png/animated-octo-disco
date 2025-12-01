@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import Card from './Card';
 import Modal from './Modal';
 import Button from './Button';
-import { HardHatIcon, Plus, Edit, Trash2, Eye, LockIcon } from 'lucide-react';
+import { SafetyIcon, Plus, Edit, Trash2, Eye } from 'lucide-react';
 
 const LOTO = ({ user, equipment = [], lotoPermits = [], db }) => {
     const [isFormOpen, setIsFormOpen] = useState(false);
@@ -11,7 +11,7 @@ const LOTO = ({ user, equipment = [], lotoPermits = [], db }) => {
     const [viewingItem, setViewingItem] = useState(null);
 
     return (
-        <Card title="LOTO (Lockout-Tagout) Management" titleIcon={LockIcon}>
+        <Card title="LOTO (Lockout-Tagout) Management" titleIcon={SafetyIcon}>
             <div className="mb-4">
                 <Button onClick={() => setIsFormOpen(true)}><Plus className="mr-2" />Add New LOTO</Button>
             </div>
