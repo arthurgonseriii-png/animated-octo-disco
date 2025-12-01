@@ -1,5 +1,5 @@
 import React from 'react';
-import { LogOut, Box, CheckCircle, BarChart, Upload } from 'lucide-react';
+import { LogOut, Box, CheckCircle, BarChart, Upload, FileText, Database } from 'lucide-react';
 import NavLink from './NavLink';
 import { DashboardIcon, DailyLogIcon, EquipmentIcon, SafetyIcon, GeoMapIcon, TeamIcon } from './Icon';
 
@@ -20,7 +20,9 @@ const Navigation = ({ setPage, user, handleLogout, currentPage }) => (
         <NavLink icon={Box} label="3D Scans" onClick={() => setPage('LidarUpload')} active={currentPage === 'LidarUpload'} />
         {(user?.role === 'MasterAdmin' || user?.role === 'Admin') && (
           <>
+            <NavLink icon={Database} label="Data Import" onClick={() => setPage('DataImport')} active={currentPage === 'DataImport'} />
             <NavLink icon={Upload} label="Parse Work Package" onClick={() => setPage('WorkPackageParser')} active={currentPage === 'WorkPackageParser'} />
+            <NavLink icon={FileText} label="JSA Generator" onClick={() => setPage('JSAGenerator')} active={currentPage === 'JSAGenerator'} />
             <NavLink icon={TeamIcon} label="Team" onClick={() => setPage('UserManagement')} active={currentPage === 'UserManagement'} />
             <NavLink icon={CheckCircle} label="Verify" onClick={() => setPage('Verification')} active={currentPage === 'Verification'} />
             <NavLink icon={BarChart} label="Reports" onClick={() => setPage('Reports')} active={currentPage === 'Reports'} />

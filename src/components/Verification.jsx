@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { collection, query, where, getDocs, doc, updateDoc, writeBatch } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, updateDoc, writeBatch, increment } from 'firebase/firestore';
 import Card from './Card';
 import Button from './Button';
-import Modal from './Modal'; // Import Modal
+import Modal from './Modal';
 import { CheckCircle, XCircle, AlertTriangle, Edit } from 'lucide-react';
 import { APP_ID } from '../constants';
 
@@ -35,43 +35,64 @@ const Verification = ({ user, db, equipment }) => {
     const [isLoading, setIsLoading] = useState(true);
     const [isCorrecting, setIsCorrecting] = useState(false);
 
-    // ... (useEffect to fetch data)
+    useEffect(() => {
+        const fetchUnverified = async () => {
+            if (!db) return;
+            const q = query(collection(db, `artifacts/${APP_ID}/public/data/files`), where('status', '==', 'unverified'));
+            const snapshot = await getDocs(q);
+            const files = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            setUnverifiedFiles(files);
+            setSelectedFile(files[0] || null);
+            setIsLoading(false);
+        };
+        fetchUnverified();
+    }, [db]);
 
     const handleVerification = async (file, isCorrect) => {
-        // ... (existing verification logic)
+        if (!db) return;
+        const batch = writeBatch(db);
+        const fileRef = doc(db, `artifacts/${APP_ID}/public/data/files`, file.id);
+        const userRef = doc(db, 'users', user.uid);
+
+        let newStatus = 'verified';
+        if (isCorrect && (user.role === 'Admin' || user.role === 'MasterAdmin' || (file.verifiers && file.verifiers.length > 0))) {
+            newStatus = 'confirmed';
+        }
+
+        batch.update(fileRef, {
+            status: newStatus,
+            verifiers: [...(file.verifiers || []), user.uid],
+            lastVerifiedBy: user.name,
+            lastVerifiedAt: serverTimestamp(),
+        });
+
+        if (isCorrect) {
+            batch.update(userRef, { verificationPoints: increment(1) });
+        }
+
+        await batch.commit();
+        moveToNextFile(file.id);
     };
 
     const handleCorrection = async (file, correctTag) => {
         if (!db) return;
+        const batch = writeBatch(db);
+        const fileRef = doc(db, `artifacts/${APP_ID}/public/data/files`, file.id);
+        const userRef = doc(db, 'users', user.uid);
 
-        try {
-            const batch = writeBatch(db);
-            const fileRef = doc(db, `artifacts/${APP_ID}/public/data/files`, file.id);
+        batch.update(fileRef, {
+            status: 'confirmed', // Corrections are automatically confirmed
+            tags: [correctTag, ...file.tags.slice(1)],
+            aiTags: file.aiTags,
+            correctedByUser: true,
+            verifiers: [...(file.verifiers || []), user.uid],
+        });
 
-            // 1. Update file status and tags
-            batch.update(fileRef, {
-                status: 'verified',
-                tags: [correctTag, ...file.tags.slice(1)], // Replace AI tag with correct one
-                aiTags: file.aiTags, // Keep original AI tags for records
-                correctedByUser: true,
-            });
+        batch.update(userRef, { verificationPoints: increment(5) }); // More points for a correction
 
-            // 2. Update the correct equipment's location
-            const equipmentItem = equipment.find(e => e.tagNumber === correctTag);
-            if (equipmentItem && file.lat && file.lng) {
-                const equipRef = doc(db, `artifacts/${APP_ID}/public/data/equipment`, equipmentItem.id);
-                batch.update(equipRef, { lat: file.lat, lng: file.lng, floor: file.floor });
-            }
-
-            await batch.commit();
-            alert(`Correction saved! Equipment data for ${correctTag} has been updated.`);
-
-            setIsCorrecting(false);
-            moveToNextFile(file.id);
-
-        } catch (error) {
-            console.error("Error saving correction:", error);
-        }
+        await batch.commit();
+        setIsCorrecting(false);
+        moveToNextFile(file.id);
     };
 
     const moveToNextFile = (currentId) => {
@@ -82,18 +103,36 @@ const Verification = ({ user, db, equipment }) => {
 
 
     if (isLoading) {
-        // ...
+        return <div>Loading...</div>;
     }
 
     return (
         <Card title={`AI Verification Hub (${unverifiedFiles.length} items remaining)`} titleIcon={CheckCircle}>
-            {/* ... (existing empty state) */}
+            {!selectedFile && (
+                <div className="text-center p-8">
+                    <CheckCircle size={48} className="mx-auto text-green-500" />
+                    <h3 className="mt-2 text-xl font-semibold">All items verified!</h3>
+                    <p className="text-gray-500">Check back later for new AI-generated sightings.</p>
+                </div>
+            )}
 
             {selectedFile && !isCorrecting && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
-                    {/* ... (existing sighting details) */}
+                    <div>
+                        <h3 className="font-bold text-lg mb-2">AI Sighting</h3>
+                        <img src={selectedFile.url} alt="AI Sighting" className="rounded-lg shadow-lg" />
+                        <div className="mt-4 p-4 bg-red-50 border-l-4 border-red-400 text-red-800">
+                            <h4 className="font-bold">Unverified Data</h4>
+                            <p className="text-sm">This AI-generated data has not been confirmed by a human.</p>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 className="font-bold text-lg mb-2">AI Analysis</h3>
+                        <p><strong>Detected Tag:</strong> {selectedFile.aiTags[0]}</p>
+                        <p><strong>Confidence:</strong> {selectedFile.aiConfidence}%</p>
+                    </div>
 
-                    <div className="mt-6 flex justify-center space-x-4">
+                    <div className="md:col-span-2 mt-6 flex justify-center space-x-4">
                         <Button onClick={() => handleVerification(selectedFile, false)} className="bg-red-600 w-1/3">
                             <XCircle size={18} className="mr-2"/> Incorrect
                         </Button>

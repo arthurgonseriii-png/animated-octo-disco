@@ -1,0 +1,4 @@
+tagNumber,name,status,floor
+BFP-002A,Boiler Feed Pump 2A,Online,L1-GROUND
+CP-003B,Condensate Pump 3B,Offline,L3-B1
+FCV-102,Feedwater Control Valve 102,Online,L4-C1
