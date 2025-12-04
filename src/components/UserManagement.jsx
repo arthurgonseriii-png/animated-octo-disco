@@ -37,48 +37,79 @@ const UserManagement = ({ allUsers = [], db }) => {
     const [editingUser, setEditingUser] = useState(null);
     const [deletingUser, setDeletingUser] = useState(null);
     const [teams, setTeams] = useState([]);
+    const [error, setError] = useState(null);
 
     useEffect(() => {
         const fetchTeams = async () => {
             if (!db) return;
-            const teamsCollection = collection(db, 'teams');
-            const teamSnapshot = await getDocs(teamsCollection);
-            setTeams(teamSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+            try {
+                setError(null);
+                const teamsCollection = collection(db, 'teams');
+                const teamSnapshot = await getDocs(teamsCollection);
+                setTeams(teamSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+            } catch (err) {
+                console.error("Error fetching teams:", err);
+                setError("Could not fetch teams. Please check permissions.");
+            }
         };
         fetchTeams();
     }, [db]);
 
     const handleSaveUser = async (user) => {
         if (!db) return;
-        if (user.id) {
-            await updateDoc(doc(db, 'users', user.id), user);
-        } else {
-            await addDoc(collection(db, 'users'), { ...user, created: serverTimestamp() });
+        try {
+            setError(null);
+            if (user.id) {
+                await updateDoc(doc(db, 'users', user.id), user);
+            } else {
+                await addDoc(collection(db, 'users'), { ...user, created: serverTimestamp() });
+            }
+            setIsFormOpen(false);
+            setEditingUser(null);
+        } catch (err) {
+            console.error("Error saving user:", err);
+            setError("Could not save user. Please check permissions.");
         }
-        setIsFormOpen(false);
-        setEditingUser(null);
     };
 
     const handleDeleteUser = async () => {
         if (!db || !deletingUser) return;
-        await deleteDoc(doc(db, 'users', deletingUser.id));
-        setDeletingUser(null);
+        try {
+            setError(null);
+            await deleteDoc(doc(db, 'users', deletingUser.id));
+            setDeletingUser(null);
+        } catch (err) {
+            console.error("Error deleting user:", err);
+            setError("Could not delete user. Please check permissions.");
+        }
     };
 
     const handleUpdateTeams = async (updatedTeams) => {
         setTeams(updatedTeams);
         if (!db) return;
-        for (const team of updatedTeams) {
-            if (team.id.startsWith('T-')) {
-                await addDoc(collection(db, 'teams'), team);
-            } else {
-                await updateDoc(doc(db, 'teams', team.id), team);
+        try {
+            setError(null);
+            for (const team of updatedTeams) {
+                if (team.id.startsWith('T-')) {
+                    await addDoc(collection(db, 'teams'), team);
+                } else {
+                    await updateDoc(doc(db, 'teams', team.id), team);
+                }
             }
+        } catch (err) {
+            console.error("Error updating teams:", err);
+            setError("Could not update teams. Please check permissions.");
         }
     };
 
     return (
         <Card title="Team Management" titleIcon={Users}>
+            {error && (
+                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+                    <strong className="font-bold">Error:</strong>
+                    <span className="block sm:inline"> {error}</span>
+                </div>
+            )}
             <div className="mb-4">
                 <Button onClick={() => { setEditingUser(null); setIsFormOpen(true); }}><Plus className="mr-2" />Add New User</Button>
             </div>
