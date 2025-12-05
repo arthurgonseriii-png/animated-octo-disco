@@ -15,21 +15,6 @@ export const MASTER_ADMIN_UID = 'MASTER_ADMIN_UID_001';
 export const APP_ID = FIREBASE_CONFIG.projectId;
 
 // --- INITIAL DATA STRUCTURES ---
-export const INITIAL_USERS = [
-    { id: 'USER_002', name: 'John Doe', role: 'Technician', team: 'Unit 1 Electrical' },
-    { id: 'USER_003', name: 'Jane Smith', role: 'Manager', team: 'I&C' },
-];
-
-export const INITIAL_EQUIPMENT = [
-    { id: 'EQ_001', tagNumber: 'BFP-001A', name: 'Boiler Feed Pump A', status: 'Online', floor: 'L1-GROUND' },
-    { id: 'EQ_002', tagNumber: 'CP-002B', name: 'Condensate Pump B', status: 'Offline', floor: 'L3-B1' },
-    { id: 'EQ_003', tagNumber: 'FCV-101', name: 'Feedwater Control Valve', status: 'Online', floor: 'L4-C1' },
-];
-
-export const INITIAL_LOTO = [
-    { id: 'LOTO_001', equipmentTag: 'CP-002B', description: 'Isolate for motor replacement', status: 'Active', createdBy: 'Jane Smith' },
-];
-
 export const INITIAL_TASK_TYPES = [
   {
     id: 'T001',
@@ -74,48 +59,3 @@ export const INITIAL_FILES = [
     { id: 'F002', name: 'DCS_Cabinet_Layout.pdf', type: 'application/pdf', url: '#', lat: 31.8105, lng: -94.4601, floor: 'Mezz', tags: ['DCS', 'Cabinet'], projectId: 'P001' },
     { id: 'F003', name: 'Tray_R-202_Photo.jpg', type: 'image/jpeg', url: 'https://placehold.co/100x70/10B981/FFFFFF?text=TRAY', lat: 31.8107, lng: -94.4599, floor: 'L9-H1', tags: ['Cable', 'Tray'], projectId: 'P001' },
 ];
-
-export const FLOORS = ['L1-GROUND', 'L3-B1', 'L4-C1', 'L5-D1', 'Mezz', 'L7-E3', 'L8-G1', 'L9-H1', 'Unknown'];
-
-// --- SAFETY CHECKLIST TEMPLATES ---
-export const SAFETY_TEMPLATES = [
-    {
-        id: 'PRE_ENERGIZATION',
-        name: 'Pre-Energization Electrical Safety',
-        description: 'Checklist for ensuring safety before energizing electrical equipment.',
-        items: [
-            'Verified LOTO is removed by all parties.',
-            'All panels and covers are re-installed and secured.',
-            'Surrounding area is clean and free of tools/debris.',
-            'Continuity and insulation resistance tests are complete and documented.',
-            'Fire suppression systems are active.',
-            'All personnel are cleared to a safe distance.',
-        ]
-    },
-    {
-        id: 'MOTOR_CHECKOUT',
-        name: 'Motor Checkout Mechanical & Electrical',
-        description: 'Final checks before a motor is put into service.',
-        items: [
-            'Motor shaft is free to rotate (uncoupled).',
-            'All terminations are torqued and marked.',
-            'Grounding is verified.',
-            'Insulation resistance (Megger) test is complete.',
-            'Rotation check is complete and correct.',
-            'Coupling alignment is complete.',
-            'Base bolts are torqued to spec.',
-        ]
-    }
-];
-
-export const MAP_DATA = {
-    'L1-GROUND': [
-        { id: 'EQ_001', x: 100, y: 200 },
-    ],
-    'L3-B1': [
-        { id: 'EQ_002', x: 300, y: 150 },
-    ],
-    'L4-C1': [
-        { id: 'EQ_003', x: 250, y: 300 },
-    ],
-};
