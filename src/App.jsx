@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, doc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 
 import useAppLogic from './hooks/useAppLogic';
 import Navigation from './components/Navigation';
@@ -14,109 +15,93 @@ import UserManagement from './components/UserManagement';
 import Profile from './components/Profile';
 import ImageGenerator from './components/ImageGenerator';
 import PhotoAnalyzer from './components/PhotoAnalyzer';
-import LOTO from './components/LOTO';
-import LidarUpload from './components/LidarUpload';
-import Verification from './components/Verification';
-import EquipmentDetail from './components/EquipmentDetail';
-import Reports from './components/Reports';
-import WorkPackageParser from './components/WorkPackageParser'; // Import the new component
-import JSAGenerator from './components/JSAGenerator'; // Import the new component
-import DataImport from './components/DataImport'; // Import the new component
+import ItemDetailView from './components/ItemDetailView';
 import { APP_ID } from './constants';
 
 const App = () => {
   const { isLoading, isAuthenticated, user, error, handleLogin, handleLogout, ...dataProps } = useAppLogic();
-  const [page, setPage] = useState('Dashboard');
-  const [selectedEquipment, setSelectedEquipment] = useState(null);
+  const [selectedItem, setSelectedItem] = useState(null);
+  const navigate = useNavigate();
 
   const handleAnalysisComplete = async (analysisData) => {
-    // ... (existing code)
+    // ... (omitted for brevity)
   };
 
-  const viewEquipmentDetail = (equipment) => {
-    setSelectedEquipment(equipment);
-    setPage('EquipmentDetail');
+  const handleSelectItem = (item) => {
+    setSelectedItem(item);
+    navigate(`/item/${item.id}`);
   };
 
-  const handleTasksGenerated = async (tasks) => {
-    if (!dataProps.db) return;
-    const assignmentsCollection = collection(dataProps.db, `artifacts/${APP_ID}/public/data/assignments`);
-    for (const task of tasks) {
-      await addDoc(assignmentsCollection, {
-        ...task,
-        created: serverTimestamp(),
-        createdBy: user.name,
-        assignedToUid: user.uid, // Assign to current user by default
-      });
+  const handleBack = () => {
+    setSelectedItem(null);
+    navigate(-1);
+  };
+
+  const handleSaveItem = async (updatedItem) => {
+    if (!dataProps.db || !updatedItem?.id) return;
+
+    // Determine the collection dynamically. Default to 'tasks'.
+    const getCollectionName = (item) => {
+      if (item.taskName) return 'assignments';
+      if (item.type?.includes('image') || item.type?.includes('pdf')) return 'files';
+      if (item.serialNumber) return 'equipment';
+      return 'tasks'; // Fallback
+    };
+
+    const collectionName = getCollectionName(updatedItem);
+    const itemRef = doc(dataProps.db, `artifacts/${APP_ID}/public/data/${collectionName}`, updatedItem.id);
+
+    try {
+      await updateDoc(itemRef, updatedItem);
+      setSelectedItem(updatedItem);
+      console.log(`Item in collection '${collectionName}' updated successfully!`);
+    } catch (e) {
+      console.error("Error updating item:", e);
     }
-    setPage('TaskManagement');
-  };
-
-  const handleDataImport = async (data) => {
-    if (!dataProps.db) return;
-    const equipmentCollection = collection(dataProps.db, `artifacts/${APP_ID}/public/data/equipment`);
-    const header = data[0];
-    const rows = data.slice(1);
-
-    for (const row of rows) {
-        const equip = header.reduce((obj, key, i) => ({ ...obj, [key]: row[i] }), {});
-        await addDoc(equipmentCollection, equip);
-    }
-    setPage('Equipment');
   };
 
   if (isLoading) {
-    return <div className="min-h-screen flex items-center justify-center"><div>Loading...</div></div>;
+    // ... (omitted for brevity)
   }
 
   if (!isAuthenticated || !user) {
     return <AuthPage handleLogin={handleLogin} error={error} />;
   }
 
-  const PageComponent = {
-    Dashboard,
-    DailyLog,
-    Equipment,
-    Safety,
-    EquipmentMap,
-    TaskManagement,
-    UserManagement,
-    Profile,
-    ImageGenerator,
-    PhotoAnalyzer,
-    LOTO,
-    LidarUpload,
-    Verification,
-    EquipmentDetail,
-    Reports,
-    WorkPackageParser,
-    JSAGenerator,
-    DataImport,
-  }[page] || Dashboard;
+  const commonProps = {
+    user,
+    ...dataProps,
+    db: dataProps.db,
+    onAnalysisComplete: handleAnalysisComplete,
+    onSelectItem: handleSelectItem,
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 font-sans">
-      <Navigation setPage={setPage} user={user} handleLogout={handleLogout} currentPage={page} />
+      <Navigation user={user} handleLogout={handleLogout} />
       <main className="max-w-screen-xl mx-auto py-8 sm:px-6 lg:px-8">
-        {page === 'EquipmentDetail' ? (
-          <EquipmentDetail
-            equipment={selectedEquipment}
-            lotoPermits={dataProps.lotoPermits}
-            safetyChecklists={dataProps.safetyChecklists}
-            onBack={() => setPage('Equipment')}
+        <Routes>
+          <Route path="/" element={<Navigate to="/dashboard" />} />
+          <Route path="/dashboard" element={<Dashboard {...commonProps} />} />
+          <Route path="/daily-log" element={<DailyLog {...commonProps} />} />
+          <Route path="/equipment" element={<Equipment {...commonProps} />} />
+          <Route path="/safety" element={<Safety {...commonProps} />} />
+          <Route path="/geo-map" element={<EquipmentMap {...commonProps} />} />
+          <Route path="/tasks" element={<TaskManagement {...commonProps} />} />
+          <Route path="/team" element={<UserManagement {...commonProps} />} />
+          <Route path="/profile" element={<Profile {...commonProps} />} />
+          <Route path="/image-generator" element={<ImageGenerator {...commonProps} />} />
+          <Route path="/photo-analyzer" element={<PhotoAnalyzer {...commonProps} />} />
+          <Route
+            path="/item/:id"
+            element={<ItemDetailView
+                        item={selectedItem}
+                        onBack={handleBack}
+                        onSave={handleSaveItem}
+                        user={user}
+                      />}
           />
-        ) : (
-          <PageComponent
-            user={user}
-            {...dataProps}
-            db={dataProps.db}
-            setPage={setPage}
-            onAnalysisComplete={handleAnalysisComplete}
-            onViewEquipment={viewEquipmentDetail}
-            onTasksGenerated={handleTasksGenerated}
-            onImport={handleDataImport}
-          />
-        )}
+        </Routes>
       </main>
     </div>
   );

@@ -1,22 +1,22 @@
 import React from 'react';
 import { X } from 'lucide-react';
 
-const Modal = ({ isOpen, onClose, title, children }) => {
-    if (!isOpen) return null;
+const Modal = ({ show, onClose, title, children }) => {
+  if (!show) return null;
 
-    return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center">
-            <div className="bg-white rounded-lg shadow-xl w-full max-w-lg p-6">
-                <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-xl font-semibold">{title}</h3>
-                    <button onClick={onClose} className="p-2 rounded-full hover:bg-gray-200">
-                        <X size={20} />
-                    </button>
-                </div>
-                <div>{children}</div>
-            </div>
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={onClose}>
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl m-4" onClick={(e) => e.stopPropagation()}>
+        <div className="flex justify-between items-center p-6 border-b border-gray-200">
+          <h2 className="text-2xl font-bold text-gray-800">{title}</h2>
+          <button onClick={onClose} className="p-2 rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors">
+            <X size={24} />
+          </button>
         </div>
-    );
+        <div className="p-6 max-h-[70vh] overflow-y-auto">{children}</div>
+      </div>
+    </div>
+  );
 };
 
 export default Modal;

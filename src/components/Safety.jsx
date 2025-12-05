@@ -2,66 +2,68 @@ import React, { useState } from 'react';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import Card from './Card';
 import Button from './Button';
-import { ShieldCheck, Plus, ListChecks, ArrowLeft, CheckSquare } from 'lucide-react';
-import { APP_ID, SAFETY_TEMPLATES } from '../constants'; // Import SAFETY_TEMPLATES
-import { EquipmentIcon } from './Icon'; // Import EquipmentIcon
+import Modal from './Modal';
+import JSAForm from './JSAForm';
+import { ShieldCheck, Plus } from 'lucide-react';
+import { APP_ID } from '../constants';
 
-const LiveChecklist = ({ template, onComplete, onBack, equipment }) => {
-    // ... (existing live checklist code)
-}
+const Safety = ({ user, safetyChecklists = [], db }) => {
+  const [isJsaFormOpen, setIsJsaFormOpen] = useState(false);
 
-
-const Safety = ({ user, safetyChecklists = [], db, equipment }) => {
-    const [activeChecklist, setActiveChecklist] = useState(null);
-
-    const handleSaveChecklist = async (completedChecklist) => {
-        // ... (existing save logic)
-    };
-
-    const recentCompleted = safetyChecklists.slice().sort((a,b) => b.completedAt - a.completedAt).slice(0, 5);
-
-    if (activeChecklist) {
-        return (
-            <Card title="Live Safety Checklist" titleIcon={ListChecks}>
-                <LiveChecklist
-                    template={activeChecklist}
-                    onComplete={handleSaveChecklist}
-                    onBack={() => setActiveChecklist(null)}
-                    equipment={equipment}
-                />
-            </Card>
-        )
+  const handleSaveJSA = async (jsaData) => {
+    if (!db || !user) {
+      console.error("Database connection or user not found.");
+      return;
     }
+    try {
+      const jsaCollection = collection(db, `artifacts/${APP_ID}/jsas`);
+      await addDoc(jsaCollection, {
+        ...jsaData,
+        status: 'Active',
+        createdByUid: user.uid,
+        createdByName: user.name,
+        created: serverTimestamp(),
+      });
+      console.log("JSA saved successfully!");
+      setIsJsaFormOpen(false);
+    } catch (e) {
+      console.error("Error saving JSA to DB:", e);
+    }
+  };
 
-    return (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2">
-                <Card title="Start a New Safety Checklist" titleIcon={Plus}>
-                    <div className="space-y-4">
-                        {SAFETY_TEMPLATES.map(template => (
-                            <div key={template.id} className="p-4 border rounded-lg hover:shadow-lg transition-shadow">
-                                <h4 className="font-bold text-lg">{template.name}</h4>
-                                <p className="text-sm text-gray-600 mb-3">{template.description}</p>
-                                <Button onClick={() => setActiveChecklist(template)}>Start This Checklist</Button>
-                            </div>
-                        ))}
-                    </div>
-                </Card>
-            </div>
-            <div>
-                <Card title="Recently Completed Checklists" titleIcon={ShieldCheck}>
-                    <ul className="space-y-3">
-                        {recentCompleted.map(chk => (
-                            <li key={chk.id} className="p-3 border rounded-lg bg-gray-50">
-                                <p className="font-semibold">{chk.templateName}</p>
-                                <p className="text-xs text-gray-500">Completed by {chk.completedBy} on {chk.completedAt?.toDate().toLocaleDateString()}</p>
-                            </li>
-                        ))}
-                    </ul>
-                </Card>
-            </div>
+  return (
+    <div>
+      <Card title="Safety Hub" titleIcon={ShieldCheck}>
+        <div className="flex justify-between items-center mb-4">
+          <p>Create, manage, and review safety documents like Job Safety Analyses (JSAs).</p>
+          <Button onClick={() => setIsJsaFormOpen(true)}>
+            <Plus className="mr-2" /> Create New JSA
+          </Button>
         </div>
-    );
+
+        {/* Placeholder for listing existing JSAs */}
+        <div className="mt-6 border-t pt-4">
+          <h3 className="text-lg font-semibold">Existing JSAs</h3>
+          {safetyChecklists.length > 0 ? (
+            <ul>
+              {safetyChecklists.map(jsa => (
+                <li key={jsa.id} className="p-2 border-b">{jsa.jobTitle}</li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-gray-500 italic mt-2">No JSAs have been created yet.</p>
+          )}
+        </div>
+      </Card>
+
+      <Modal isOpen={isJsaFormOpen} onClose={() => setIsJsaFormOpen(false)} title="Create Job Safety Analysis">
+        <JSAForm
+          onSave={handleSaveJSA}
+          onCancel={() => setIsJsaFormOpen(false)}
+        />
+      </Modal>
+    </div>
+  );
 };
 
 export default Safety;
